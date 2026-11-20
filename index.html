@@ -1,0 +1,330 @@
+ 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My To-Do List</title>
+
+  <style>
+    /* 전체 페이지 */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      font-family: Arial, "Noto Sans KR", sans-serif;
+      background: #eef5ef;
+      color: #26352b;
+    }
+
+    /* 메인 카드 */
+    .todo-container {
+      width: 100%;
+      max-width: 480px;
+      padding: 35px;
+      background: white;
+      border-radius: 22px;
+      box-shadow: 0 12px 35px rgba(39, 75, 47, 0.10);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 28px;
+      color: #244b32;
+    }
+
+    .subtitle {
+      margin-bottom: 28px;
+      color: #87938a;
+      font-size: 14px;
+    }
+
+    /* 입력 영역 */
+    .input-area {
+      display: flex;
+      gap: 10px;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      padding: 14px;
+      border: 1px solid #dce7de;
+      border-radius: 10px;
+      outline: none;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+
+    input:focus {
+      border-color: #4c9b65;
+      box-shadow: 0 0 0 3px rgba(76, 155, 101, 0.12);
+    }
+
+    .add-btn {
+      padding: 0 20px;
+      border: none;
+      border-radius: 10px;
+      background: #36834d;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .add-btn:hover {
+      background: #28683c;
+    }
+
+    /* 할 일 개수 */
+    .todo-count {
+      margin: 18px 0;
+      padding: 13px;
+      background: #f1f7f2;
+      border-radius: 10px;
+      color: #58705e;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .todo-count strong {
+      color: #36834d;
+    }
+
+    /* 목록 */
+    ul {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 15px;
+      background: #fafcf9;
+      border: 1px solid #edf1ed;
+      border-radius: 12px;
+      transition: 0.2s;
+    }
+
+    li:hover {
+      border-color: #b8d7be;
+      transform: translateY(-2px);
+    }
+
+    /* 할 일 텍스트 */
+    .todo-text {
+      flex: 1;
+      min-width: 0;
+      font-size: 14px;
+      cursor: pointer;
+      overflow-wrap: anywhere;
+    }
+
+    /* 완료 상태 */
+    .completed .todo-text {
+      color: #a1aaa3;
+      text-decoration: line-through;
+    }
+
+    /* 삭제 버튼 */
+    .delete-btn {
+      padding: 7px 11px;
+      border: none;
+      border-radius: 7px;
+      background: #fff0ee;
+      color: #d65b50;
+      font-size: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .delete-btn:hover {
+      background: #fbd9d5;
+    }
+
+    /* 모바일 화면 */
+    @media (max-width: 480px) {
+      .todo-container {
+        padding: 25px 20px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .add-btn {
+        padding: 0 15px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="todo-container">
+
+    <h1 id="title">오늘의 할 일</h1>
+
+    <p class="subtitle">
+      오늘 해야 할 일을 하나씩 완료해 보세요!
+    </p>
+
+    <!-- 입력 영역 -->
+    <div class="input-area">
+      <input
+        id="todoInput"
+        type="text"
+        placeholder="할 일을 입력하세요"
+      >
+
+      <button class="add-btn" id="addBtn">
+        추가
+      </button>
+    </div>
+
+    <!-- 할 일 개수 -->
+    <p class="todo-count" id="todoCount">
+      전체 0개 / 완료 0개
+    </p>
+
+    <!-- 할 일 목록 -->
+    <ul id="todoList"></ul>
+
+  </div>
+
+  <script>
+    // 제목 변경
+    document.getElementById("title").textContent =
+      "My To-Do List";
+
+    // 할 일 데이터 배열
+    let todos = [
+      { text: "JavaScript 공부하기", completed: false },
+      { text: "과제 제출하기", completed: false }
+      { text: "과제 제출하기", completed: false }
+      { text: "과제 제출하기", completed: false }
+    ];
+
+    const todoInput = document.getElementById("todoInput");
+    const todoList = document.getElementById("todoList");
+    const todoCount = document.getElementById("todoCount");
+    const addBtn = document.getElementById("addBtn");
+
+    // 할 일 목록 화면에 표시
+    function renderTodos() {
+
+      // 기존 목록 비우기
+      todoList.innerHTML = "";
+
+      // 배열의 데이터 반복
+      todos.forEach(function(todo, index) {
+
+        // li 생성
+        const li = document.createElement("li");
+
+        // 완료 상태 확인
+        if (todo.completed) {
+          li.classList.add("completed");
+        }
+
+        // 할 일 텍스트 생성
+        const span = document.createElement("span");
+        span.textContent = todo.text;
+        span.classList.add("todo-text");
+
+        // 텍스트 클릭 시 완료 상태 변경
+        span.addEventListener("click", function() {
+          todos[index].completed = !todos[index].completed;
+          renderTodos();
+        });
+
+        // 삭제 버튼 생성
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "삭제";
+        deleteBtn.classList.add("delete-btn");
+
+        // 삭제 버튼 클릭 시 항목 제거
+        deleteBtn.addEventListener("click", function() {
+          todos.splice(index, 1);
+          renderTodos();
+        });
+
+        // 요소들을 li에 추가
+        li.append(span);
+        li.append(deleteBtn);
+
+        // li를 목록에 추가
+        todoList.append(li);
+
+      });
+
+      // 할 일 개수 계산
+      const totalCount = todos.length;
+
+      const completedCount = todos.filter(function(todo) {
+        return todo.completed;
+      }).length;
+
+      // 개수 화면에 표시
+      todoCount.innerHTML =
+        "전체 <strong>" + totalCount +
+        "개</strong> / 완료 <strong>" +
+        completedCount + "개</strong>";
+    }
+
+    // 할 일 추가
+    function addTodo() {
+
+      const text = todoInput.value.trim();
+
+      // 빈 입력 방지
+      if (text === "") {
+        alert("할 일을 입력하세요!");
+        return;
+      }
+
+      // 배열에 새로운 할 일 추가
+      todos.push({
+        text: text,
+        completed: false
+      });
+
+      // 입력창 초기화
+      todoInput.value = "";
+
+      // 목록 다시 표시
+      renderTodos();
+    }
+
+    // 추가 버튼 클릭
+    addBtn.addEventListener("click", addTodo);
+
+    // Enter 키로도 추가 가능
+    todoInput.addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        addTodo();
+      }
+    });
+
+    // 처음 화면 표시
+    renderTodos();
+
+  </script>
+
+</body>
+</html>
